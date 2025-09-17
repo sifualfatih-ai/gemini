@@ -1,7 +1,7 @@
-name: Deploy GitHub Pages (web/)
+name: Deploy static content to Pages
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 permissions:
   contents: read
   pages: write
@@ -10,18 +10,16 @@ concurrency:
   group: "pages"
   cancel-in-progress: true
 jobs:
-  build:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: "web"
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-    steps:
-      - uses: actions/deploy-pages@v4
+          path: "./web"
+      - id: deployment
+        uses: actions/deploy-pages@v4
