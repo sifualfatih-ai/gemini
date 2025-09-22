@@ -2,123 +2,21 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>NafsFlow</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NafsFlow — Deployed ✅</title>
   <style>
-    body{font-family:system-ui,Arial;margin:0;background:#faf7ff}
-    .wrap{max-width:920px;margin:40px auto;padding:24px;background:#fff;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.08)}
-    h1{margin:0 0 16px}
-    input,button{padding:12px;border-radius:10px;border:1px solid #ddd}
-    button{border:none;cursor:pointer}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .muted{color:#666}
+    body{margin:0;font-family:system-ui,Arial;background:#faf7ff;display:grid;place-items:center;height:100vh}
+    .card{background:#fff;padding:28px 32px;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.08);text-align:center}
+    h1{margin:0 0 8px}
+    p{margin:0 0 16px;color:#555}
+    a.btn{display:inline-block;padding:12px 16px;border-radius:10px;background:#6b46ff;color:#fff;text-decoration:none}
   </style>
-  <!-- Firebase (compat untuk simpel) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<div class="wrap">
-  <h1>NafsFlow</h1>
-  <p class="muted">Login & langganan (trial 3 hari) untuk akses aplikasi AI Studio.</p>
-
-  <div class="row" id="auth">
-    <input id="email" placeholder="Email"/>
-    <input id="pass" type="password" placeholder="Kata sandi"/>
-    <button id="signup">Daftar</button>
-    <button id="signin">Masuk</button>
-    <button id="signout" style="display:none;background:#eee">Keluar</button>
+  <div class="card">
+    <h1>NafsFlow</h1>
+    <p>Deploy via Firebase Hosting BERHASIL 🎉</p>
+    <a class="btn" href="/">Refresh</a>
   </div>
-
-  <div id="pay" style="margin-top:16px;display:none">
-    <p>Status langganan: <b id="sub-status">memeriksa…</b></p>
-    <button id="subscribe">Coba Gratis 3 Hari</button>
-  </div>
-
-  <div id="app" style="display:none;margin-top:20px">
-    <h3>Aplikasi AI Studio</h3>
-    <!-- Banyak app AI Studio tidak boleh di-iframe. Pakai link aman: -->
-    <a id="aiurl" target="_blank" rel="noopener">Buka Aplikasi</a>
-  </div>
-
-  <p class="muted" id="msg"></p>
-</div>
-
-<script>
-  // 1) GANTI ke config project Firebase kamu (project: nafs-gen)
-  const firebaseConfig = {
-    apiKey: "GANTI",
-    authDomain: "GANTI",
-    projectId: "nafs-gen",
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  // 2) GANTI ke URL app AI Studio kamu
-  const AI_STUDIO_URL = "https://aistudio.google.com/app/PASTE_URL_APP_KAMU";
-
-  // 3) GANTI ke PRICE ID Stripe (trial 3 hari)
-  const PRICE_ID = "price_xxx";
-
-  // Auth UI
-  signup.onclick = async () => {
-    try{
-      await auth.createUserWithEmailAndPassword(email.value, pass.value);
-    }catch(e){ alert(e.message); }
-  };
-  signin.onclick = async () => {
-    try{
-      await auth.signInWithEmailAndPassword(email.value, pass.value);
-    }catch(e){ alert(e.message); }
-  };
-  signout.onclick = () => auth.signOut();
-
-  // Cek status subscription
-  auth.onAuthStateChanged(async (u)=>{
-    signout.style.display = u ? 'inline-block':'none';
-    if(!u){ pay.style.display='none'; app.style.display='none'; return; }
-    pay.style.display='block';
-    document.getElementById('sub-status').innerText = 'memeriksa…';
-
-    try{
-      const qs = await db.collection('customers').doc(u.uid)
-        .collection('subscriptions')
-        .where('status','in',['trialing','active'])
-        .limit(1).get();
-
-      const ok = !qs.empty;
-      document.getElementById('sub-status').innerText = ok ? 'AKTIF/TRIAL' : 'Belum aktif';
-      if(ok){
-        app.style.display='block';
-        document.getElementById('aiurl').href = AI_STUDIO_URL;
-      }else{
-        app.style.display='none';
-      }
-    }catch(e){
-      document.getElementById('sub-status').innerText = 'Error';
-      document.getElementById('msg').innerText = e.message;
-    }
-  });
-
-  // Panggil endpoint Extension Stripe → Checkout
-  subscribe.onclick = async ()=>{
-    try{
-      const res = await fetch('/ext-firestore-stripe-payments-createCheckoutSession', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          price: PRICE_ID,
-          success_url: 'https://app.nafsflow.com/success',
-          cancel_url: 'https://app.nafsflow.com/cancel'
-        })
-      });
-      const data = await res.json();
-      if(data && data.url) window.location = data.url;
-      else alert('Gagal membuat Checkout: ' + JSON.stringify(data));
-    }catch(e){ alert(e.message); }
-  };
-</script>
 </body>
 </html>
