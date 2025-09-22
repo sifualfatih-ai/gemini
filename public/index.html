@@ -18,5 +18,28 @@
     <p>Deploy via Firebase Hosting BERHASIL 🎉</p>
     <a class="btn" href="/">Refresh</a>
   </div>
+
+  <script>
+  const PRICE_ID = "price_xxx"; // GANTI dgn price dari Stripe
+
+  async function startTrial() {
+    const res = await fetch('/ext-firestore-stripe-payments-createCheckoutSession', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        price: PRICE_ID,
+        success_url: 'https://app.nafsflow.com/success',
+        cancel_url:  'https://app.nafsflow.com/cancel'
+      })
+    });
+    const data = await res.json();
+    if (data?.url) window.location = data.url;
+    else alert('Gagal membuat checkout: ' + JSON.stringify(data));
+  }
+</script>
+
+<button onclick="startTrial()">Coba Gratis 3 Hari</button>
+
+  
 </body>
 </html>
