@@ -1,189 +1,29 @@
 <!doctype html>
-<html>
+<html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NafsFlow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NafsFlow • AI Studio</title>
   <style>
-    :root{--bg:#faf7ff;--card:#fff;--txt:#222;--muted:#666;--pri:#6b46ff}
-    body{margin:0;background:var(--bg);font-family:system-ui,Arial}
-    .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
-    .card{width:100%;max-width:720px;background:var(--card);border-radius:18px;
-          box-shadow:0 16px 40px rgba(0,0,0,.08);padding:28px 28px}
-    h1{margin:0 0 6px;font-size:28px}
-    p.muted{margin:0 0 18px;color:var(--muted)}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    input{padding:12px 14px;border:1px solid #e7e2ff;border-radius:10px;flex:1;min-width:200px}
-    button{padding:12px 14px;border-radius:10px;border:0;background:var(--pri);color:#fff;cursor:pointer}
-    button.ghost{background:#eee;color:#333}
-    .badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#efe9ff;color:#5a36ff;font-size:12px;margin-left:8px}
-    .hr{height:1px;background:#f0eef7;margin:18px 0}
-    .ok{color:#0a7a2f;font-weight:600}
-    .warn{color:#aa2c2c;font-weight:600}
-    a.btn{display:inline-block;padding:12px 14px;border-radius:10px;background:var(--pri);color:#fff;text-decoration:none}
-    .right{margin-left:auto}
+    html,body{height:100%;margin:0;background:#0b0b0b;}
+    .bar{position:fixed;z-index:2;top:0;left:0;right:0;height:44px;
+         background:#1b1b1b;color:#eee;display:flex;align-items:center;gap:10px;padding:0 12px;font:14px system-ui}
+    .badge{background:#2e2e2e;border-radius:999px;padding:4px 10px;color:#bdbdbd}
+    iframe{position:fixed;top:44px;left:0;width:100%;height:calc(100% - 44px);border:0;background:#000}
   </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>NafsFlow <span class="badge">subscription-ready</span></h1>
-    <p class="muted">Login → Trial 3 hari → otomatis buka aplikasi AI Studio.</p>
-
-    <!-- AUTH PANEL -->
-    <div id="authPanel">
-      <div class="row">
-        <input id="email" type="email" placeholder="email@contoh.com" />
-        <input id="pass"  type="password" placeholder="minimal 6 karakter" />
-      </div>
-      <div class="row" style="margin-top:10px">
-        <button id="btnSignup">Daftar</button>
-        <button id="btnLogin">Masuk</button>
-        <button id="btnGoogle" class="ghost">Masuk dengan Google</button>
-      </div>
-    </div>
-
-    <!-- STATUS PANEL -->
-    <div id="userPanel" style="display:none">
-      <div class="row" style="align-items:center">
-        <div>
-          <div id="who"></div>
-          <div id="substate" class="muted"></div>
-        </div>
-        <button id="btnLogout" class="ghost right">Keluar</button>
-      </div>
-
-      <div class="hr"></div>
-
-      <div id="gateNotActive" style="display:none">
-        <p>Belum ada langganan aktif. Tekan tombol di bawah untuk <b>coba gratis 3 hari</b>.</p>
-        <div class="row">
-          <button id="btnTrial">Coba Gratis 3 Hari</button>
-          <button id="btnManage" class="ghost">Kelola langganan</button>
-        </div>
-      </div>
-
-      <div id="gateActive" style="display:none">
-        <p class="ok">Status: aktif / trialing. Kamu bisa membuka aplikasi sekarang.</p>
-        <a id="btnOpenApp" class="btn" href="#" target="_blank">Buka Aplikasi AI Studio</a>
-        <button id="btnManage2" class="ghost">Kelola langganan</button>
-      </div>
-    </div>
+  <div class="bar">
+    <strong>NafsFlow</strong>
+    <span class="badge">AI Studio</span>
+    <!-- Placeholder: nanti di sini gampang ditambah tombol “Masuk” / “Masukkan Kode” -->
   </div>
-</div>
 
-<!-- Firebase compat SDK (auto config via init.js) -->
-<script defer src="/__/firebase/12.3.0/firebase-app-compat.js"></script>
-<script defer src="/__/firebase/12.3.0/firebase-auth-compat.js"></script>
-<script defer src="/__/firebase/12.3.0/firebase-firestore-compat.js"></script>
-<script defer src="/__/firebase/init.js"></script>
-
-<script>
-  // ========= KONFIG YANG KAMU BERIKAN =========
-  const PRICE_ID = "price_1SA80nF8DZVwRZFrJIlAONaB";
-  const APP_URL  = "https://ai.studio/apps/drive/1sjTlxY3GFur6gxgkKPON-4KRd3N5jPOE";
-  // ============================================
-
-  // helper
-  const $ = (id)=>document.getElementById(id);
-  const authPanel = $("authPanel");
-  const userPanel = $("userPanel");
-  const gateActive = $("gateActive");
-  const gateNotActive = $("gateNotActive");
-  const who = $("who"), substate = $("substate");
-  const openApp = $("btnOpenApp");
-
-  // Menunggu SDK siap
-  document.addEventListener('DOMContentLoaded', () => {
-    firebase.auth().onAuthStateChanged(async (user) => {
-      if (!user) {
-        authPanel.style.display = "";
-        userPanel.style.display = "none";
-        return;
-      }
-      authPanel.style.display = "none";
-      userPanel.style.display = "";
-
-      who.textContent = `Masuk sebagai: ${user.email || user.uid}`;
-      openApp.href = APP_URL;
-
-      // Pantau status langganan user di Firestore
-      const subRef = firebase.firestore()
-        .collection('customers').doc(user.uid).collection('subscriptions');
-
-      subRef.onSnapshot((snap) => {
-        let active = false, label = "—";
-        snap.forEach(doc => {
-          const s = (doc.data()?.status || '').toLowerCase();
-          if (["active","trialing"].includes(s)) active = true;
-          if (s) label = s;
-        });
-        substate.textContent = `Status langganan: ${active? '✅ '+label : '❌ '+label}`;
-        gateActive.style.display = active ? "" : "none";
-        gateNotActive.style.display = active ? "none" : "";
-      });
-    });
-
-    // actions
-    $("btnSignup").onclick = async () => {
-      const e=$("email").value.trim(), p=$("pass").value;
-      if(!e||!p){alert("Lengkapi email & password.");return;}
-      try { await firebase.auth().createUserWithEmailAndPassword(e,p); }
-      catch(err){ alert(err.message); }
-    };
-
-    $("btnLogin").onclick = async () => {
-      const e=$("email").value.trim(), p=$("pass").value;
-      if(!e||!p){alert("Lengkapi email & password.");return;}
-      try { await firebase.auth().signInWithEmailAndPassword(e,p); }
-      catch(err){ alert(err.message); }
-    };
-
-    $("btnGoogle").onclick = async () => {
-      try { await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-      catch(err){ alert(err.message); }
-    };
-
-    $("btnLogout").onclick = () => firebase.auth().signOut();
-
-    // checkout trial 3 hari
-    $("btnTrial").onclick = async () => {
-      const user = firebase.auth().currentUser;
-      if(!user){alert("Masuk dulu.");return;}
-      try {
-        const res = await fetch('/ext-firestore-stripe-payments-createCheckoutSession', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            price: PRICE_ID,
-            success_url: 'https://app.nafsflow.com/success',
-            cancel_url:  'https://app.nafsflow.com/cancel',
-            subscription_data: { trial_period_days: 3 }
-          })
-        });
-        const data = await res.json();
-        if (data?.url) window.location = data.url;
-        else alert('Gagal membuat Checkout: '+JSON.stringify(data));
-      } catch (err) {
-        alert(err.message);
-      }
-    };
-
-    // portal untuk kelola langganan
-    const openPortal = async () => {
-      const res = await fetch('/ext-firestore-stripe-payments-createPortalLink', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          return_url: window.location.origin + '/'
-        })
-      });
-      const data = await res.json();
-      if (data?.url) window.location = data.url;
-      else alert('Gagal membuka portal: '+JSON.stringify(data));
-    };
-    $("btnManage").onclick = openPortal;
-    $("btnManage2").onclick = openPortal;
-  });
-</script>
+  <!-- GANTI URL di bawah ini kalau perlu -->
+  <iframe
+    src="https://ai.studio/apps/drive/1sjTlxY3GFur6gxgkKPON-4KRd3N5jPOE"
+    allow="clipboard-write; microphone; camera; fullscreen"
+    referrerpolicy="no-referrer"
+  ></iframe>
 </body>
 </html>
